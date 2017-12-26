@@ -1,5 +1,5 @@
 extern crate cautious_eureka;
-use cautious_eureka::ThreadPool;
+use cautious_eureka::thread_pool::ThreadPool;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;

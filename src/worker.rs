@@ -3,30 +3,14 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-trait FnBox {
-    fn call_box(self: Box<Self>);
-}
 
-impl<F: FnOnce()> FnBox for F {
-    fn call_box(self: Box<F>) {
-        (*self)()
-    }
-}
-
-enum Message {
-    NewJob(Job),
-    Terminate,
-}
-
-type Job = Box<FnBox + Send + 'static>;
-
-struct Worker {
-    id: usize,
-    thread: Option<thread::JoinHandle<()>>,
+pub struct Worker {
+    pub id: usize,
+    pub thread: Option<thread::JoinHandle<()>>,
 }
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) ->
+    pub fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<super::Message>>>) ->
         Worker {
 
             let thread = thread::spawn(move ||{
@@ -34,12 +18,12 @@ impl Worker {
                     let message = receiver.lock().unwrap().recv().unwrap();
 
                     match message {
-                        Message::NewJob(job) => {
+                        super::Message::NewJob(job) => {
                             println!("Worker {} got a job; executing.", id);
 
                             job.call_box();
                         },
-                        Message::Terminate => {
+                        super::Message::Terminate => {
                             println!("Worker {} was told to terminate.", id);
 
                             break;
