@@ -1,0 +1,6 @@
+[package]
+name = "cautious-eureka"
+version = "0.1.0"
+authors = ["andy-bell <andy.bell.github@gmail.com>"]
+
+[dependencies]
