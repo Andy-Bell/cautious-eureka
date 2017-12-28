@@ -1,5 +1,6 @@
 pub mod thread_pool;
 pub mod worker;
+pub mod error_handler;
 
 pub trait FnBox {
     fn call_box(self: Box<Self>);

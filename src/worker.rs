@@ -2,6 +2,7 @@ use std::thread;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use error_handler::error_handler;
 
 
 pub struct Worker {
@@ -10,14 +11,24 @@ pub struct Worker {
 }
 
 impl Worker {
-    pub fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<super::Message>>>) ->
-        Worker {
+    pub fn new(
+        id: usize,
+        receiver: Arc<Mutex<mpsc::Receiver<super::Message>>>
+        ) -> Worker {
 
             let thread = thread::spawn(move ||{
                 loop {
-                    let message = receiver.lock().unwrap().recv().unwrap();
+                    let message1 = error_handler(receiver.lock(),"there was a proplem locking the receiver: {:?}");
 
-                    match message {
+                    let message2 = message1.recv();
+                    let message2 = match message2 {
+                        Ok(message) => message,
+                        Err(error) => {
+                            panic!("The sending channel has closed and can not be used: {:?}", error);
+                        },
+                    };
+
+                    match message2 {
                         super::Message::NewJob(job) => {
                             println!("Worker {} got a job; executing.", id);
 
