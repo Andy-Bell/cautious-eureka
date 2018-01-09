@@ -1,5 +1,6 @@
 extern crate cautious_eureka;
 use cautious_eureka::thread_pool::ThreadPool;
+use cautious_eureka::router;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
@@ -22,7 +23,7 @@ fn main() {
 
 fn handle_connection(mut stream: TcpStream) {
 
-    let (status_line, contents) = cautious_eureka::router(&stream);
+    let (status_line, contents) = router::router(&stream);
     let response = format!("{}{}", status_line, contents);
 
     stream.write(response.as_bytes()).unwrap();
