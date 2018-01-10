@@ -1,4 +1,14 @@
 [[package]]
 name = "cautious-eureka"
-version = "0.1.0"
+version = "0.2.0"
+dependencies = [
+ "httparse 1.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
+[[package]]
+name = "httparse"
+version = "1.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[metadata]
+"checksum httparse 1.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "af2f2dd97457e8fb1ae7c5a420db346af389926e36f43768b96f101546b04a07"
