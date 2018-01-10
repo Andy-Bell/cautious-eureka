@@ -1,3 +1,5 @@
+extern crate httparse;
+
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
@@ -8,17 +10,24 @@ pub fn router (mut stream: &TcpStream) -> (String, String) {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).unwrap();
 
-    let s = match str::from_utf8(&buffer) {
-        Ok(v) => v,
-        Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-    };
+    let mut headers = [httparse::EMPTY_HEADER; 16];
+    let mut req = httparse::Request::new(&mut headers);
 
-    let array: Vec<&str> = s.split(" ").collect();
+    let res = req.parse(&buffer).unwrap();
 
-    let (status_line, filename) = if array[0] == "GET" && array[1] == "/" {
-        (String::from("HTTP/1.1 200 OK\r\n\r\n"), "hello.html")
-    } else {
-        (String::from("HTTP/1.1 404 NOT FOUND\r\n\r\n"), "404.html")
+    let (status_line, filename) = if res.is_partial() {
+        match req.path {
+            Some(ref path) => {
+                if path.to_string() == "/" {
+                    (String::from("HTTP/1.1 200 OK\r\n\r\n"), "hello.html")
+                } else {
+                    (String::from("HTTP/1.1 404 NOT FOUND\r\n\r\n"), "404.html")
+                }
+            },
+            None => {
+                panic!("no req.path");
+            }
+        }
     };
 
     let mut file = File::open(format!("views/{}", filename)).unwrap();
