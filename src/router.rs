@@ -2,8 +2,9 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
 use std::fs::File;
+use std::string::String;
 
-pub fn router (mut stream: &TcpStream) -> (::std::string::String, ::std::string::String) {
+pub fn router (mut stream: &TcpStream) -> (String, String) {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).unwrap();
 
@@ -11,7 +12,6 @@ pub fn router (mut stream: &TcpStream) -> (::std::string::String, ::std::string:
         Ok(v) => v,
         Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
     };
-
 
     let array: Vec<&str> = s.split(" ").collect();
 
