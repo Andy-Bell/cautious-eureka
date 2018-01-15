@@ -23,9 +23,13 @@ fn main() {
 
 fn handle_connection(mut stream: TcpStream) {
 
-    let (status_line, contents) = router::router(&stream);
-    let response = format!("{}{}", status_line, contents);
+    let mut buffer = [0; 1024];
+    stream.read(&mut buffer).unwrap();
 
-    stream.write(response.as_bytes()).unwrap();
+    let (status_line, contents) = router::router(&buffer);
+    let response = format!("{}{}", status_line, contents);
+    println!("{}", response);
+
+    stream.write_all(response.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
