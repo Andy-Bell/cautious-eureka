@@ -7,30 +7,30 @@ use self::httparse::Request;
 
 pub struct Route<'a>{
     path: String,
-    function: &'a Fn(&Request) -> Response_Object,
+    function: &'a Fn(&Request) -> ResponseObject,
 }
 
 impl<'a> Route<'a> {
-    pub fn new<F>(func: &'a F, path: String) -> Route<'a> where F: Fn(&Request) -> Response_Object {
+    pub fn new<F>(path: String, func: &'a F) -> Route<'a> where F: Fn(&Request) -> ResponseObject{
         Route {
             path: path,
             function: func
         }
     }
 
-    pub fn call(&self, req: &Request) -> Response_Object {
+    pub fn call(&self, req: &Request) -> ResponseObject {
         return (self.function)(&req);
     }
 }
 
-pub struct Response_Object {
-    header: String,
-    body: String,
+pub struct ResponseObject {
+    pub header: String,
+    pub body: String,
 }
 
-impl Response_Object {
-    pub fn new(header: String, body: String) -> Response_Object {
-        Response_Object {
+impl ResponseObject{
+    pub fn new(header: String, body: String) -> ResponseObject {
+        ResponseObject {
             header: header,
             body: body,
         }
@@ -38,20 +38,20 @@ impl Response_Object {
 }
 
 pub struct Router<'b>{
-    pub routes: [Route<'b>; 512],
+    pub routes: Vec<Route<'b>>,
 }
 
 impl<'b> Router<'b>{
-    pub fn new(routes: [Route; 512]) -> Router {
+    pub fn new(routes: Vec<Route>) -> Router {
         Router {
             routes: routes,
         }
     }
 
-    pub fn match_routes(&self, req: Request) -> Response_Object {
+    pub fn match_routes(&self, req: Request) -> ResponseObject {
         match req.path {
             Some(ref path) => {
-                let mut res = Response_Object::new(String::from("HTTP/1.1 404 NOT FOUND\r\n\r\n"), String::from("404.html"));
+                let mut res = ResponseObject::new(String::from("HTTP/1.1 404 NOT FOUND\r\n\r\n"), String::from("404.html"));
                 for route in self.routes.iter() {
                     if path.to_string() == route.path {
                         res = route.call(&req);
