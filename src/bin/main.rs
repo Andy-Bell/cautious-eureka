@@ -3,38 +3,47 @@ extern crate cautious_eureka;
 use cautious_eureka::thread_pool::ThreadPool;
 use cautious_eureka::router;
 use self::httparse::Request;
+
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
     let pool = ThreadPool::new(4);
-    let server_router = RouterConfig();
+    let server_router = Arc::new(Mutex::new(router_config()));
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
         pool.execute(|| {
-            handle_connection(stream, &server_router);
+            handle_connection(stream, Arc::clone(&server_router));
         });
     }
 
     println!("Shutting down.");
 }
 
-fn RouterConfig<'c>() -> router::Router<'c> {
+fn router_config<'c>() -> router::Router<'c> {
     let mut routes: Vec<router::Route> = Vec::new();
 
     let mut headers = [httparse::EMPTY_HEADER; 16];
     let mut req = Request::new(&mut headers);
-    routes.push(router::Route::new(String::from("/"), &index(&req)));
+    routes.push(
+        router::Route::new(
+            String::from("/"),
+            &index(&req)
+        )
+    );
 
     return router::Router::new(routes);
 }
 
 
-fn handle_connection(mut stream: TcpStream, server_router: &router::Router ) {
+fn handle_connection(mut stream: TcpStream,
+                     server_router: Arc<Mutex<router::Router>> ) {
 
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
@@ -44,7 +53,7 @@ fn handle_connection(mut stream: TcpStream, server_router: &router::Router ) {
 
     let _res = req.parse(&buffer).unwrap();
 
-    let response_object = server_router.match_routes(req);
+    let response_object = server_router.lock().unwrap().match_routes(req);
 
     //let (status_line, contents) = router(&buffer);
     //let response = format!("{}{}", status_line, contents);
