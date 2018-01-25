@@ -11,7 +11,9 @@ pub struct Route<'a>{
 }
 
 impl<'a> Route<'a> {
-    pub fn new<F>(path: String, func: &'a F) -> Route<'a> where F: Fn(&Request) -> ResponseObject{
+    pub fn new<F>(path: String, func: &'a F) -> Route<'a> 
+        where 
+        F: Fn(&Request) -> ResponseObject{
         Route {
             path: path,
             function: func

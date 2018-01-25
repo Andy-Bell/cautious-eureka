@@ -16,6 +16,7 @@ impl ThreadPool {
     /// # Panics
     ///
     /// The `new` function will panic if the size is zero.
+    /// #FIXME Error Handling needed
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
 
@@ -35,6 +36,12 @@ impl ThreadPool {
         }
     }
 
+    /// Pass a function to a worker to execute
+    ///
+    /// f is the Function to be passed.
+    ///
+    /// Panic possible on sender.send returning an error
+    /// #FIXME - Error Handling needed
     pub fn execute<F>(&self, f: F)
         where
         F: FnOnce() + Send + 'static
