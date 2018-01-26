@@ -7,13 +7,13 @@ use self::httparse::Request;
 
 pub struct Route<'a>{
     path: String,
-    function: &'a Fn(&Request) -> ResponseObject,
+    function: &'a mut FnMut(&Request) -> ResponseObject,
 }
 
 impl<'a> Route<'a> {
-    pub fn new<F>(path: String, func: &'a F) -> Route<'a> 
+    pub fn new<F>(path: String, func: &'a mut F) -> Route<'a> 
         where 
-        F: Fn(&Request) -> ResponseObject{
+        F: FnMut(&Request) -> ResponseObject{
         Route {
             path: path,
             function: func
