@@ -5,26 +5,28 @@ use std::fs::File;
 use std::string::String;
 use self::httparse::Request;
 
-pub struct Route<'a>{
+pub struct Route {
     path: String,
-    function: &'a mut FnMut(&Request) -> ResponseObject,
+    function: Box<Fn(&Request) -> ResponseObject>,
 }
 
-impl<'a> Route<'a> {
-    pub fn new<F>(path: String, func: &'a mut F) -> Route<'a> 
+impl Route {
+    pub fn new<F>(path: String, func: F) -> Route
         where 
-        F: FnMut(&Request) -> ResponseObject{
+        F: Fn(&Request) -> ResponseObject + 'static
+    {
         Route {
             path: path,
-            function: func
+            function: Box::new(func)
         }
     }
 
-    pub fn call(&mut self, req: &Request) -> ResponseObject {
+    pub fn call(&self, req: &Request) -> ResponseObject {
         return (self.function)(&req);
     }
 }
 
+#[derive(Clone)]
 pub struct ResponseObject {
     pub header: String,
     pub body: String,
@@ -39,11 +41,11 @@ impl ResponseObject{
     }
 }
 
-pub struct Router<'b>{
-    pub routes: Vec<Route<'b>>,
+pub struct Router {
+    pub routes: Vec<Route>,
 }
 
-impl<'b> Router<'b>{
+impl Router {
     pub fn new(routes: Vec<Route>) -> Router {
         Router {
             routes: routes,

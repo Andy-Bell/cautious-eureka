@@ -31,15 +31,16 @@ fn main() {
     println!("Shutting down.");
 }
 
-fn router_config<'c>() -> router::Router<'c> {
+fn router_config() -> router::Router {
     let mut routes: Vec<router::Route> = Vec::new();
 
     let mut headers = [httparse::EMPTY_HEADER; 16];
-    let mut req = Request::new(&mut headers);
+    let req = Request::new(&mut headers);
+    let index = index(&req);
     let index = make_route(
-            String::from("/"),
-            &index(&req)
-        );
+        String::from("/"),
+        move |_| index.clone()
+    );
     routes.push(
         index
     );
@@ -71,11 +72,12 @@ fn handle_connection(mut stream: TcpStream,
     stream.flush().unwrap();
 }
 
-fn make_route<'a, F>(route: String, func:&'a F) -> router::Route<'a>
+fn make_route<F>(route: String, func: F) -> router::Route
     where
-    F: Fn(&Request) -> router::ResponseObject{
-        return router::Route::new(route, func);
-    }
+    F: Fn(&Request) -> router::ResponseObject + 'static
+{
+    return router::Route::new(route, func);
+}
 
 fn index(request: &Request) -> router::ResponseObject {
     return router::ResponseObject::new(String::from("HTTP/1.1 200 OK\r\n\r\n"), String::from("hello.html"));
