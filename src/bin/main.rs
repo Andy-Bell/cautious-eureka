@@ -4,6 +4,7 @@ use cautious_eureka::thread_pool::ThreadPool;
 use cautious_eureka::router;
 use self::httparse::Request;
 
+use std::fs::File;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
@@ -66,7 +67,12 @@ fn handle_connection(mut stream: TcpStream,
     //let response = format!("{}{}", status_line, contents);
     //println!("{}", response);
 
-    let response = format!("{}{}", response_object.header, response_object.body);
+    let mut file = File::open(format!("views/{}", response_object.body)).unwrap();
+    let mut contents = String::new();
+
+    file.read_to_string(&mut contents).unwrap();
+
+    let response = format!("{}{}", response_object.header, contents);
 
     stream.write_all(response.as_bytes()).unwrap();
     stream.flush().unwrap();
