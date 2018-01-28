@@ -34,9 +34,14 @@ pub struct ResponseObject {
 
 impl ResponseObject{
     pub fn new(header: String, body: String) -> ResponseObject {
+        let mut file = File::open(format!("views/{}", body)).unwrap();
+        let mut contents = String::new();
+
+        file.read_to_string(&mut contents).unwrap();
+
         ResponseObject {
             header: header,
-            body: body,
+            body: contents,
         }
     }
 }
@@ -55,7 +60,10 @@ impl Router {
     pub fn match_routes(&self, req: Request) -> ResponseObject {
         match req.path {
             Some(ref path) => {
-                let mut res = ResponseObject::new(String::from("HTTP/1.1 404 NOT FOUND\r\n\r\n"), String::from("404.html"));
+                let mut res = ResponseObject::new(
+                    String::from("HTTP/1.1 404 NOT FOUND\r\n\r\n"),
+                    String::from("404.html")
+                );
                 for route in self.routes.iter() {
                     if path.to_string() == route.path {
                         res = route.call(&req);

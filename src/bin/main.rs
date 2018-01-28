@@ -4,7 +4,6 @@ use cautious_eureka::thread_pool::ThreadPool;
 use cautious_eureka::router;
 use self::httparse::Request;
 
-use std::fs::File;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
@@ -37,10 +36,10 @@ fn router_config() -> router::Router {
 
     let mut headers = [httparse::EMPTY_HEADER; 16];
     let req = Request::new(&mut headers);
-    let index = index(&req);
+    let index_func = index(&req);
     let index = make_route(
         String::from("/"),
-        move |_| index.clone()
+        move |_| index_func.clone()
     );
     routes.push(
         index
@@ -50,8 +49,9 @@ fn router_config() -> router::Router {
 }
 
 
-fn handle_connection(mut stream: TcpStream,
-                     server_router: router::Router ) {
+fn handle_connection(
+    mut stream: TcpStream,
+    server_router: router::Router ) {
 
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
@@ -63,16 +63,7 @@ fn handle_connection(mut stream: TcpStream,
 
     let response_object = server_router.match_routes(req);
 
-    //let (status_line, contents) = router(&buffer);
-    //let response = format!("{}{}", status_line, contents);
-    //println!("{}", response);
-
-    let mut file = File::open(format!("views/{}", response_object.body)).unwrap();
-    let mut contents = String::new();
-
-    file.read_to_string(&mut contents).unwrap();
-
-    let response = format!("{}{}", response_object.header, contents);
+    let response = format!("{}{}", response_object.header, response_object.body);
 
     stream.write_all(response.as_bytes()).unwrap();
     stream.flush().unwrap();
@@ -85,6 +76,6 @@ fn make_route<F>(route: String, func: F) -> router::Route
     return router::Route::new(route, func);
 }
 
-fn index(request: &Request) -> router::ResponseObject {
+fn index(_request: &Request) -> router::ResponseObject {
     return router::ResponseObject::new(String::from("HTTP/1.1 200 OK\r\n\r\n"), String::from("hello.html"));
 }
