@@ -20,7 +20,7 @@ impl<'a> Route<'a> {
         }
     }
 
-    pub fn call(&self, req: &Request) -> ResponseObject {
+    pub fn call(&mut self, req: &Request) -> ResponseObject {
         return (self.function)(&req);
     }
 }
